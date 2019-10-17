@@ -24,7 +24,7 @@ def create_model(captcha_length, captcha_num_symbols, input_shape, model_depth=5
           x = keras.layers.Conv2D(32*2**min(i, 3), kernel_size=(3,3), padding='same', kernel_initializer='variance_scaling_initializer')(x)
           x = keras.layers.BatchNormalization()(x)
           x = keras.layers.Activation('relu')(x)
-          x = keras.layers.Dropout(0.2)(x)
+        #   x = keras.layers.Dropout(0.2)(x)
       x = keras.layers.MaxPooling2D(2)(x)
 
   x = keras.layers.Flatten()(x)
@@ -76,6 +76,7 @@ class ImageSequence(keras.utils.Sequence):
             image = ImageOps.grayscale(image)
             image = numpy.array(image)
             image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)[1]
+            image = cv2.Canny(image,100,200)
             #raw_data_gray = PIL.ImageOps.autocontrast(raw_data_gray, cutoff=10, ignore=None)
             processed_data = numpy.array(image) / 255.0
             processed_data = numpy.expand_dims(processed_data, axis=2)

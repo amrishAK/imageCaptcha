@@ -71,6 +71,7 @@ def main():
                 image = numpy.array(image)
                 image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)[1]
                 #raw_data_gray = PIL.ImageOps.autocontrast(raw_data_gray, cutoff=10, ignore=None)
+                image = cv2.Canny(image,100,200)
                 image = numpy.array(image) / 255.0
                 image = numpy.expand_dims(image, axis=2)
                 (c, h, w) = image.shape
