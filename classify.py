@@ -9,7 +9,7 @@ import cv2
 import numpy
 import string
 import random
-import argparse 
+import argparse
 import tensorflow as tf
 import tensorflow.keras as keras
 from PIL import Image, ImageOps, ImageEnhance
@@ -20,11 +20,15 @@ def decode(characters, y):
     return ''.join([characters[x] for x in y])
 
 def main():
+    #default device
+    device = '/device:CPU:0'
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-name', help='Model name to use for classification', type=str)
     parser.add_argument('--captcha-dir', help='Where to read the captchas to break', type=str)
     parser.add_argument('--output', help='File where the classifications should be saved', type=str)
     parser.add_argument('--symbols', help='File with the symbols to use in captchas', type=str)
+    parser.add_argument('--gpu', help='used to run in gpu', type=str)
     args = parser.parse_args()
 
     if args.model_name is None:
@@ -43,13 +47,19 @@ def main():
         print("Please specify the captcha symbols file")
         exit(1)
 
+    if args.gpu == 'gpu':
+        physical_devices = tf.config.experimental.list_physical_devices('GPU')
+        assert len(physical_devices) > 0, "No GPU available!"
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        device = '/device:GPU:0'
+
     symbols_file = open(args.symbols, 'r')
     captcha_symbols = symbols_file.readline().strip()
     symbols_file.close()
 
     print("Classifying captchas with symbol set {" + captcha_symbols + "}")
 
-    with tf.device('/cpu:0'):
+    with tf.device(device):
         with open(args.output, 'w') as output_file:
             json_file = open(args.model_name+'.json', 'r')
             loaded_model_json = json_file.read()
@@ -71,7 +81,7 @@ def main():
                 image = numpy.array(image)
                 image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)[1]
                 #raw_data_gray = PIL.ImageOps.autocontrast(raw_data_gray, cutoff=10, ignore=None)
-                image = cv2.Canny(image,100,200)
+                #image = cv2.Canny(image,100,200)
                 image = numpy.array(image) / 255.0
                 image = numpy.expand_dims(image, axis=2)
                 (c, h, w) = image.shape
@@ -79,7 +89,8 @@ def main():
                 prediction = model.predict(image)
                 output_file.write(x + "," + decode(captcha_symbols, prediction) + "\n")
 
-                print('Classified ' + x)
+                # print('Classified ' + x)
+    print("Classifying captchas completed!")
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     main()
