@@ -21,7 +21,7 @@ def create_model(captcha_length, captcha_num_symbols, input_shape, model_depth=5
   x = input_tensor
   for i, module_length in enumerate([module_size] * model_depth):
       for j in range(module_length):
-          x = keras.layers.Conv2D(32*2**min(i, 3), kernel_size=(3,3), padding='same', kernel_initializer='truncated_normal')(x)
+          x = keras.layers.Conv2D(32*2**min(i, 3), kernel_size=(3,3), padding='same', kernel_initializer='variance_scaling_initializer')(x)
           x = keras.layers.BatchNormalization()(x)
           x = keras.layers.Activation('relu')(x)
           x = keras.layers.Dropout(0.2)(x)
@@ -93,6 +93,9 @@ class ImageSequence(keras.utils.Sequence):
         return X, y
 
 def main():
+    #default device
+    device = '/device:CPU:0'
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--width', help='Width of captcha image', type=int)
     parser.add_argument('--height', help='Height of captcha image', type=int)
@@ -104,6 +107,7 @@ def main():
     parser.add_argument('--input-model', help='Where to look for the input model to continue training', type=str)
     parser.add_argument('--epochs', help='How many training epochs to run', type=int)
     parser.add_argument('--symbols', help='File with the symbols to use in captchas', type=str)
+    parser.add_argument('--gpu', help='used to run in gpu', type=str)    
     args = parser.parse_args()
 
     if args.width is None:
@@ -142,17 +146,18 @@ def main():
         print("Please specify the captcha symbols file")
         exit(1)
 
+    if args.symbols is 'gpu':
+        physical_devices = tf.config.experimental.list_physical_devices('GPU')
+        assert len(physical_devices) > 0, "No GPU available!"
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        device = '/device:GPU:0'        
+
     captcha_symbols = None
     with open(args.symbols) as symbols_file:
         captcha_symbols = symbols_file.readline()
 
-    # physical_devices = tf.config.experimental.list_physical_devices('GPU')
-    # assert len(physical_devices) > 0, "No GPU available!"
-    # tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
-    # with tf.device('/device:GPU:0'):
-    with tf.device('/device:CPU:0'):
-    # with tf.device('/device:XLA_CPU:0'):
+    with tf.device(device):
+        
         model = create_model(args.length, len(captcha_symbols), (args.height, args.width,1))
 
         if args.input_model is not None:
