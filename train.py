@@ -21,9 +21,10 @@ def create_model(captcha_length, captcha_num_symbols, input_shape, model_depth=5
   x = input_tensor
   for i, module_length in enumerate([module_size] * model_depth):
       for j in range(module_length):
-          x = keras.layers.Conv2D(32*2**min(i, 3), kernel_size=3, padding='same', kernel_initializer='he_uniform')(x)
+          x = keras.layers.Conv2D(32*2**min(i, 3), kernel_size=(3,3), padding='same', kernel_initializer='truncated_normal')(x)
           x = keras.layers.BatchNormalization()(x)
           x = keras.layers.Activation('relu')(x)
+          x = keras.layers.Dropout(0.2)(x)
       x = keras.layers.MaxPooling2D(2)(x)
 
   x = keras.layers.Flatten()(x)
@@ -167,7 +168,7 @@ def main():
         validation_data = ImageSequence(args.validate_dataset, args.batch_size, args.length, captcha_symbols, args.width, args.height)
 
         callbacks = [keras.callbacks.EarlyStopping(patience=3),
-                     # keras.callbacks.CSVLogger('log.csv'),
+                     keras.callbacks.CSVLogger('log.csv'),
                      keras.callbacks.ModelCheckpoint(args.output_model_name+'.h5', save_best_only=False)]
 
         # Save the model architecture to JSON
