@@ -76,5 +76,7 @@ def main():
         image = numpy.array(captcha_generator.generate_image(captcha_text))
         cv2.imwrite(image_path, image)
 
+    print("Captchas images of length " + args.length + " generated successfully!")
+
 if __name__ == '__main__':
     main()
