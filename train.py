@@ -76,6 +76,7 @@ class ImageSequence(keras.utils.Sequence):
             image = ImageOps.grayscale(image)
             image = numpy.array(image)
             image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)[1]
+            image = cv2.Canny(image,100,200)
             #raw_data_gray = PIL.ImageOps.autocontrast(raw_data_gray, cutoff=10, ignore=None)
             processed_data = numpy.array(image) / 255.0
             processed_data = numpy.expand_dims(processed_data, axis=2)
