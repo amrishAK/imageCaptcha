@@ -20,15 +20,14 @@ def run():
         print("kindly specify the file that contains predected results")
         exit(1)
 
-    noPredicted = 0
+    total = 0
     success = 0
     failure = 0
-    #analysis = [0]*(argument.captcha_length)
 
     with open(argument.predicted_output) as f:
         results = f.readlines()
         results = [x.strip() for x in results]
-        noPredicted = len(results) 
+        total = len(results)
 
         for result in results:
             resultArray = result.split('.png,')
@@ -36,23 +35,12 @@ def run():
                 success += 1
             else:
                 failure += 1
-                # rArray = list(resultArray[0]) 
-                # preArray = list(resultArray[1])
-                # count = 0
-                # for index in range(argument.captcha_length - 1):
-                #     if(rArray[index] != preArray[index]):
-                #         count += 1
-                # analysis[count] += 1
 
-        print("Number of captchas taken for prediction: " + str(noPredicted))
-        print("Number succeded in predecting: "+ str(success))
-        print("Number failed in predecting: "+ str(failure))
-        accuracy = (success/noPredicted)*100
-        print("Model accuracy is "+ str(accuracy) + "%")
-
-        # print("Failure analysis")
-        # for index in range(argument.captcha_length - 1):
-        #     print(str(index+1)+" Mismatch count is " + str(analysis[index]))
+        print("Total number of image captchas taken for prediction: " + str(total))
+        print("Number of correct predictions: "+ str(success))
+        print("Number of wrong predictions: "+ str(failure))
+        accuracy = (success/total)*100
+        print("The accuracy of the model is "+ str(accuracy) + "%")
 
 if __name__ == '__main__':
     run()

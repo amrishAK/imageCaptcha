@@ -8,7 +8,6 @@ import os
 import cv2
 import numpy
 from PIL import Image, ImageOps, ImageEnhance
-import string
 import random
 import argparse
 import tensorflow as tf
@@ -24,7 +23,6 @@ def create_model(captcha_length, captcha_num_symbols, input_shape, model_depth=5
           x = keras.layers.Conv2D(32*2**min(i, 3), kernel_size=(3,3), padding='same', kernel_initializer=keras.initializers.he_uniform(seed=None))(x)
           x = keras.layers.BatchNormalization()(x)
           x = keras.layers.Activation('relu')(x)
-        #   x = keras.layers.Dropout(0.2)(x)
       x = keras.layers.MaxPooling2D(2)(x)
 
   x = keras.layers.Flatten()(x)
@@ -68,16 +66,12 @@ class ImageSequence(keras.utils.Sequence):
             # We have to scale the input pixel values to the range [0, 1] for
             # Keras so we divide by 255 since the image is 8-bit RGB
             image = Image.open(os.path.join(self.directory_name, random_image_file))
-            # image = Image.open(os.path.join(args.captcha_dir, x)) # the 0 loads the image in grayscale
-            #gray_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2GRAY)
             image = ImageOps.autocontrast(image, cutoff=10, ignore=None)
             image = ImageEnhance.Sharpness(image)
             image = image.enhance(10.0)
             image = ImageOps.grayscale(image)
             image = numpy.array(image)
             image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)[1]
-            #image = cv2.Canny(image,100,200)
-            #raw_data_gray = PIL.ImageOps.autocontrast(raw_data_gray, cutoff=10, ignore=None)
             processed_data = numpy.array(image) / 255.0
             processed_data = numpy.expand_dims(processed_data, axis=2)
             X[i] = processed_data
