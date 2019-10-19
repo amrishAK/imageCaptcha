@@ -7,8 +7,6 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 import os
 import cv2
 import numpy
-import string
-import random
 import argparse
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -73,15 +71,12 @@ def main():
             for x in os.listdir(args.captcha_dir):
                 # load image and preprocess it
                 image = Image.open(os.path.join(args.captcha_dir, x))
-                #image = cv2.threshold(raw_data, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
                 image = ImageOps.autocontrast(image, cutoff=10, ignore=None)
                 image = ImageEnhance.Sharpness(image)
                 image = image.enhance(10.0)
                 image = ImageOps.grayscale(image)
                 image = numpy.array(image)
                 image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)[1]
-                #raw_data_gray = PIL.ImageOps.autocontrast(raw_data_gray, cutoff=10, ignore=None)
-                #image = cv2.Canny(image,100,200)
                 image = numpy.array(image) / 255.0
                 image = numpy.expand_dims(image, axis=2)
                 (c, h, w) = image.shape
@@ -89,7 +84,7 @@ def main():
                 prediction = model.predict(image)
                 output_file.write(x + "," + decode(captcha_symbols, prediction) + "\n")
 
-                # print('Classified ' + x)
+                print('Classified ' + x)
     print("Classifying captchas completed!")
 
 if __name__ == '__main__':
